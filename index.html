@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SF-499P Telemetry</title>
+</head>
+<body>
+
+<h1>SF-499P TELEMETRY</h1>
+<p id="status">Cargando datos...</p>
+
+<script>
+fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSkrsRHOk7gXEjBY8ud2n-4d7a8Iq-CrC0x10W1bEwSwVswiaPj0CA3lnpdWOtPCezGkfiOX2g6Ro30/pub?output=csv")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("status").innerText = data;
+  })
+  .catch(err => {
+    document.getElementById("status").innerText = "ERROR cargando CSV";
+  });
+</script>
+
+</body>
+</html>
