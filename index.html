@@ -4,21 +4,35 @@
   <meta charset="UTF-8">
   <title>SF-499P Telemetry</title>
 </head>
+
 <body>
 
-<h1>SF-499P TELEMETRY</h1>
-<p id="status">Cargando datos...</p>
+  <!-- DIV (PANTALLA) -->
+  <div style="font-family: monospace;">
+    <h1>SF-499P LIVE TELEMETRY</h1>
 
-<script>
-fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSkrsRHOk7gXEjBY8ud2n-4d7a8Iq-CrC0x10W1bEwSwVswiaPj0CA3lnpdWOtPCezGkfiOX2g6Ro30/pub?output=csv")
-  .then(res => res.text())
-  .then(data => {
-    document.getElementById("status").innerText = data;
-  })
-  .catch(err => {
-    document.getElementById("status").innerText = "ERROR cargando CSV";
-  });
-</script>
+    <div>Energy: <span id="energy">--</span></div>
+    <div>Deep Work: <span id="deepwork">--</span></div>
+    <div>Mental Callous: <span id="mental">--</span></div>
+    <div>Output: <span id="output">--</span></div>
+    <div>Streak: <span id="streak">--</span></div>
+  </div>
+
+  <!-- SCRIPT (EL CEREBRO DEL PROGRAMA) -->
+  <script>
+    fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSkrsRHOk7gXEjBY8ud2n-4d7a8Iq-CrC0x10W1bEwSwVswiaPj0CA3lnpdWOtPCezGkfiOX2g6Ro30/pub?output=csv")
+      .then(res => res.text())
+      .then(csv => {
+        const lines = csv.trim().split("\n");
+        const last = lines[lines.length - 1].split(",");
+
+        document.getElementById("energy").innerText = last[1];
+        document.getElementById("deepwork").innerText = last[2];
+        document.getElementById("mental").innerText = last[3];
+        document.getElementById("output").innerText = last[4];
+        document.getElementById("streak").innerText = last[5];
+      });
+  </script>
 
 </body>
 </html>
