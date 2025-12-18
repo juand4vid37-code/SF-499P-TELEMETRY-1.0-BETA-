@@ -1,24 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SF-499P Telemetry</title>
+  <title>SF-499P | WEC ENDURANCE</title>
+
+  <style>
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, #1a1a1a, #050607 60%),
+        repeating-linear-gradient(
+          45deg,
+          #0f0f10,
+          #0f0f10 4px,
+          #121314 4px,
+          #121314 8px
+        );
+      color: #e5e7eb;
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    .container {
+      padding: 28px;
+      max-width: 920px;
+      margin: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .title {
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: #9ca3af;
+    }
+
+    .status {
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: #22c55e;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .metric {
+      background: linear-gradient(145deg, #0b0c0d, #121316);
+      border: 1px solid #1f2937;
+      padding: 18px;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
+    }
+
+    .metric-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #6b7280;
+    }
+
+    .metric-value {
+      font-size: 38px;
+      margin-top: 10px;
+      font-weight: 500;
+      color: #f9fafb;
+    }
+
+    .footer {
+      margin-top: 36px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, #1f2937, transparent);
+      margin: 24px 0;
+    }
+  </style>
 </head>
 
 <body>
+  <div class="container">
 
-  <!-- DIV (PANTALLA) -->
-  <div style="font-family: monospace;">
-    <h1>SF-499P LIVE TELEMETRY</h1>
+    <div class="header">
+      <div class="title">SF-499P · ENDURANCE TELEMETRY</div>
+      <div class="status">STINT ACTIVE</div>
+    </div>
 
-    <div>Energy: <span id="energy">--</span></div>
-    <div>Deep Work: <span id="deepwork">--</span></div>
-    <div>Mental Callous: <span id="mental">--</span></div>
-    <div>Output: <span id="output">--</span></div>
-    <div>Streak: <span id="streak">--</span></div>
+    <div class="divider"></div>
+
+    <div class="grid">
+      <div class="metric">
+        <div class="metric-label">ENERGY STATE</div>
+        <div class="metric-value" id="energy">--</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">DEEP WORK (MIN)</div>
+        <div class="metric-value" id="deepwork">--</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">MENTAL CALLOUS</div>
+        <div class="metric-value" id="mental">--</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">OUTPUT UNITS</div>
+        <div class="metric-value" id="output">--</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">CONSISTENCY STREAK</div>
+        <div class="metric-value" id="streak">--</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>ENGINEER VIEW · NO DISTRACTIONS</div>
+      <div>ENDURANCE MODE</div>
+    </div>
+
   </div>
 
-  <!-- SCRIPT (EL CEREBRO DEL PROGRAMA) -->
   <script>
     fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSkrsRHOk7gXEjBY8ud2n-4d7a8Iq-CrC0x10W1bEwSwVswiaPj0CA3lnpdWOtPCezGkfiOX2g6Ro30/pub?output=csv")
       .then(res => res.text())
