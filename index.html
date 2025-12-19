@@ -1,151 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>SF-499P | WEC ENDURANCE</title>
+<script>
+/* ======================
+   ENGINE CONTROL SYSTEM
+   ====================== */
 
-  <style>
-    body {
-      margin: 0;
-      background:
-        radial-gradient(circle at top left, #1a1a1a, #050607 60%),
-        repeating-linear-gradient(
-          45deg,
-          #0f0f10,
-          #0f0f10 4px,
-          #121314 4px,
-          #121314 8px
-        );
-      color: #e5e7eb;
-      font-family: "IBM Plex Mono", monospace;
-    }
+let engineOn = false;
+let startTime = null;
+let timerInterval = null;
 
-    .container {
-      padding: 28px;
-      max-width: 920px;
-      margin: auto;
-    }
+function engineStart() {
+  if (!engineOn) {
+    engineOn = true;
+    startTime = Date.now();
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
-    }
+    document.getElementById("engineStatus").innerText = "ENGINE ON";
+    document.getElementById("engineStatus").style.color = "#22c55e";
+    document.getElementById("engineBtn").innerText = "ENGINE RUNNING";
 
-    .title {
-      font-size: 14px;
-      letter-spacing: 3px;
-      color: #9ca3af;
-    }
+    startTimer();
+  }
+}
 
-    .status {
-      font-size: 11px;
-      letter-spacing: 1px;
-      color: #22c55e;
-    }
+function startTimer() {
+  timerInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-    }
+    const hours = Math.floor(elapsed / 3600000);
+    const minutes = Math.floor((elapsed % 3600000) / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
 
-    .metric {
-      background: linear-gradient(145deg, #0b0c0d, #121316);
-      border: 1px solid #1f2937;
-      padding: 18px;
-      box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
-    }
+    document.getElementById("sessionTime").innerText =
+      `${hours}h ${minutes}m ${seconds}s`;
 
-    .metric-label {
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: #6b7280;
-    }
+    // Reset automático a 24h
+    if (elapsed >= 86400000) resetDay();
+  }, 1000);
+}
 
-    .metric-value {
-      font-size: 38px;
-      margin-top: 10px;
-      font-weight: 500;
-      color: #f9fafb;
-    }
+function resetDay() {
+  clearInterval(timerInterval);
+  engineOn = false;
 
-    .footer {
-      margin-top: 36px;
-      font-size: 10px;
-      letter-spacing: 1px;
-      color: #6b7280;
-      display: flex;
-      justify-content: space-between;
-    }
+  document.getElementById("engineStatus").innerText = "ENGINE OFF";
+  document.getElementById("engineStatus").style.color = "#ef4444";
+  document.getElementById("engineBtn").innerText = "ENGINE START 🔴";
+  document.getElementById("sessionTime").innerText = "0h 0m 0s";
+}
 
-    .divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #1f2937, transparent);
-      margin: 24px 0;
-    }
-  </style>
-</head>
+/* ======================
+   TELEMETRY CSV FEED
+   ====================== */
 
-<body>
-  <div class="container">
+fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSkrsRHOk7gXEjBY8ud2n-4d7a8Iq-CrC0x10W1bEwSwVswiaPj0CA3lnpdWOtPCezGkfiOX2g6Ro30/pub?output=csv")
+  .then(res => res.text())
+  .then(csv => {
+    const lines = csv.trim().split("\n");
+    const last = lines[lines.length - 1].split(",");
 
-    <div class="header">
-      <div class="title">SF-499P · ENDURANCE TELEMETRY</div>
-      <div class="status">STINT ACTIVE</div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="grid">
-      <div class="metric">
-        <div class="metric-label">ENERGY STATE</div>
-        <div class="metric-value" id="energy">--</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">DEEP WORK (MIN)</div>
-        <div class="metric-value" id="deepwork">--</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">MENTAL CALLOUS</div>
-        <div class="metric-value" id="mental">--</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">OUTPUT UNITS</div>
-        <div class="metric-value" id="output">--</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">CONSISTENCY STREAK</div>
-        <div class="metric-value" id="streak">--</div>
-      </div>
-    </div>
-
-    <div class="footer">
-      <div>ENGINEER VIEW · NO DISTRACTIONS</div>
-      <div>ENDURANCE MODE</div>
-    </div>
-
-  </div>
-
-  <script>
-    fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSkrsRHOk7gXEjBY8ud2n-4d7a8Iq-CrC0x10W1bEwSwVswiaPj0CA3lnpdWOtPCezGkfiOX2g6Ro30/pub?output=csv")
-      .then(res => res.text())
-      .then(csv => {
-        const lines = csv.trim().split("\n");
-        const last = lines[lines.length - 1].split(",");
-
-        document.getElementById("energy").innerText = last[1];
-        document.getElementById("deepwork").innerText = last[2];
-        document.getElementById("mental").innerText = last[3];
-        document.getElementById("output").innerText = last[4];
-        document.getElementById("streak").innerText = last[5];
-      });
-  </script>
-
-</body>
-</html>
+    document.getElementById("energy").innerText = last[1];
+    document.getElementById("deepwork").innerText = last[2];
+    document.getElementById("mental").innerText = last[3];
+    document.getElementById("output").innerText = last[4];
+    document.getElementById("streak").innerText = last[5];
+  });
+</script>
