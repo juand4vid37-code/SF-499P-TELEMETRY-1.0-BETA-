@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SF-499P WEC Dashboard v1</title>
+  <title>SF-499P · Session Telemetry</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -16,18 +16,20 @@
 
     .container {
       padding: 32px;
+      max-width: 900px;
+      margin: auto;
     }
 
     h1 {
-      font-size: 20px;
+      font-size: 18px;
       letter-spacing: 3px;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
 
     .panel {
       border: 1px solid #27272a;
       padding: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
     }
 
     button {
@@ -38,61 +40,122 @@
       font-family: inherit;
       letter-spacing: 2px;
       cursor: pointer;
+      margin-right: 10px;
+    }
+
+    .log {
+      font-size: 12px;
+      border-top: 1px solid #27272a;
+      padding-top: 12px;
+    }
+
+    .entry {
+      margin-bottom: 6px;
+      color: #9ca3af;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
-    <h1>SF-499P WEC DASHBOARD v1</h1>
+<div class="container">
+  <h1>SF-499P · SESSION TELEMETRY</h1>
 
-    <div class="panel">
-      <button id="engineBtn" onclick="engineStart()">
-        ENGINE START 🔴
-      </button>
+  <div class="panel">
+    <button id="engineBtn" onclick="engineStart()">ENGINE START 🔴</button>
+    <button onclick="engineStop()">ENGINE STOP 🟥</button>
 
-      <p>
-        STATUS:
-        <span id="engineStatus" style="color:#ef4444;">ENGINE OFF</span>
-      </p>
+    <p>
+      STATUS:
+      <span id="engineStatus" style="color:#ef4444;">ENGINE OFF</span>
+    </p>
 
-      <p>
-        STINT TIME:
-        <span id="stintTime">0h 0m 0s</span>
-      </p>
-    </div>
+    <p>
+      STINT TIME:
+      <span id="stintTime">0h 0m 0s</span>
+    </p>
   </div>
 
-  <script>
-    let engineOn = false;
-    let startTime = null;
-    let timer = null;
+  <div class="panel">
+    <h2 style="font-size:14px; letter-spacing:2px;">SESSION LOG</h2>
+    <div id="sessionLog" class="log"></div>
+  </div>
+</div>
 
-    function engineStart() {
-      if (engineOn) return;
+<script>
+let engineOn = false;
+let startTime = null;
+let timer = null;
 
-      engineOn = true;
-      startTime = Date.now();
+function engineStart() {
+  if (engineOn) return;
 
-      document.getElementById("engineStatus").innerText = "ENGINE ON";
-      document.getElementById("engineStatus").style.color = "#22c55e";
-      document.getElementById("engineBtn").innerText = "ENGINE RUNNING";
+  engineOn = true;
+  startTime = Date.now();
 
-      timer = setInterval(updateTimer, 1000);
-    }
+  document.getElementById("engineStatus").innerText = "ENGINE ON";
+  document.getElementById("engineStatus").style.color = "#22c55e";
+  document.getElementById("engineBtn").innerText = "ENGINE RUNNING";
 
-    function updateTimer() {
-      const elapsed = Date.now() - startTime;
+  timer = setInterval(updateTimer, 1000);
+}
 
-      const h = Math.floor(elapsed / 3600000);
-      const m = Math.floor((elapsed % 3600000) / 60000);
-      const s = Math.floor((elapsed % 60000) / 1000);
+function engineStop() {
+  if (!engineOn) return;
 
-      document.getElementById("stintTime").innerText =
-        `${h}h ${m}m ${s}s`;
-    }
-  </script>
+  const elapsed = Date.now() - startTime;
+  saveSession(elapsed);
+
+  clearInterval(timer);
+  engineOn = false;
+
+  document.getElementById("engineStatus").innerText = "ENGINE OFF";
+  document.getElementById("engineStatus").style.color = "#ef4444";
+  document.getElementById("engineBtn").innerText = "ENGINE START 🔴";
+  document.getElementById("stintTime").innerText = "0h 0m 0s";
+
+  loadSessions();
+}
+
+function updateTimer() {
+  const elapsed = Date.now() - startTime;
+
+  const h = Math.floor(elapsed / 3600000);
+  const m = Math.floor((elapsed % 3600000) / 60000);
+  const s = Math.floor((elapsed % 60000) / 1000);
+
+  document.getElementById("stintTime").innerText =
+    `${h}h ${m}m ${s}s`;
+}
+
+function saveSession(ms) {
+  const sessions = JSON.parse(localStorage.getItem("sf499p_sessions")) || [];
+
+  sessions.push({
+    date: new Date().toLocaleDateString(),
+    duration: Math.floor(ms / 60000) // minutos
+  });
+
+  localStorage.setItem("sf499p_sessions", JSON.stringify(sessions));
+}
+
+function loadSessions() {
+  const log = document.getElementById("sessionLog");
+  log.innerHTML = "";
+
+  const sessions = JSON.parse(localStorage.getItem("sf499p_sessions")) || [];
+
+  sessions.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "entry";
+    div.innerText = `#${i + 1} · ${s.date} · ${s.duration} min`;
+    log.appendChild(div);
+  });
+}
+
+// Cargar historial al abrir
+loadSessions();
+</script>
 
 </body>
 </html>
