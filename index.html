@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SF-499P · Human Telemetry</title>
+  <title>SF-499P · Telemetry Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
@@ -16,7 +18,7 @@
 
     .container {
       padding: 32px;
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
     }
 
@@ -54,6 +56,14 @@
       margin-top: 10px;
     }
 
+    input[type=number] {
+      width: 100px;
+      background: #020617;
+      color: #f9fafb;
+      border: 1px solid #1f2937;
+      padding: 6px;
+    }
+
     .log {
       font-size: 12px;
       border-top: 1px solid #1f2937;
@@ -70,7 +80,7 @@
 <body>
 
 <div class="container">
-  <h1>SF-499P · HUMAN TELEMETRY</h1>
+  <h1>SF-499P · TELEMETRY DASHBOARD</h1>
 
   <!-- ENGINE -->
   <div class="panel">
@@ -98,13 +108,30 @@
   <!-- DEEP WORK -->
   <div class="panel">
     <p><strong>DEEP WORK STINT</strong></p>
-
     <button class="secondary" onclick="startDeepWork()">START DEEP WORK</button>
     <button class="secondary" onclick="endDeepWork()">END DEEP WORK</button>
 
     <p>CURRENT DEEP WORK:
       <span id="deepWorkTime">0 min</span>
     </p>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="panel">
+    <p><strong>OUTPUT UNITS</strong></p>
+
+    <input type="number" id="outputInput" min="1" value="1">
+    <button class="secondary" onclick="addOutput()">ADD OUTPUT</button>
+
+    <p>
+      CURRENT OUTPUT:
+      <span id="outputValue">0</span>
+    </p>
+  </div>
+
+  <!-- CHART -->
+  <div class="panel">
+    <canvas id="outputChart"></canvas>
   </div>
 
   <!-- LOG -->
@@ -115,128 +142,109 @@
 </div>
 
 <script>
+/* ===== STATE ===== */
+let engineOn=false,startTime=null,engineTimer=null;
+let energyState=5;
+let deepWorkOn=false,deepWorkStart=null,deepWorkTotalMs=0,deepTimer=null;
+let outputUnits=0;
+let outputChart;
+
 /* ===== ENGINE ===== */
-let engineOn = false;
-let startTime = null;
-let engineTimer = null;
+function engineStart(){
+  if(engineOn)return;
+  engineOn=true;startTime=Date.now();
+  document.getElementById("engineStatus").innerText="ENGINE ON";
+  document.getElementById("engineStatus").style.color="#22c55e";
+  document.getElementById("engineBtn").innerText="ENGINE RUNNING";
+  engineTimer=setInterval(updateEngineTimer,1000);
+}
+function engineStop(){
+  if(!engineOn)return;
+  if(deepWorkOn)endDeepWork();
+  saveSession();
+  clearInterval(engineTimer);
+  engineOn=false;
+  document.getElementById("engineStatus").innerText="ENGINE OFF";
+  document.getElementById("engineStatus").style.color="#ef4444";
+  document.getElementById("engineBtn").innerText="ENGINE START 🔴";
+  document.getElementById("stintTime").innerText="0h 0m 0s";
+  document.getElementById("deepWorkTime").innerText="0 min";
+  document.getElementById("outputValue").innerText="0";
+  deepWorkTotalMs=0;outputUnits=0;
+  loadSessions();updateChart();
+}
+function updateEngineTimer(){
+  const e=Date.now()-startTime;
+  document.getElementById("stintTime").innerText=
+    `${Math.floor(e/3600000)}h ${Math.floor(e%3600000/60000)}m ${Math.floor(e%60000/1000)}s`;
+}
 
 /* ===== ENERGY ===== */
-let energyState = 5;
+function updateEnergy(v){
+  energyState=v;
+  document.getElementById("energyValue").innerText=v;
+}
 
 /* ===== DEEP WORK ===== */
-let deepWorkOn = false;
-let deepWorkStart = null;
-let deepWorkTotalMs = 0;
-let deepWorkTimer = null;
-
-function updateEnergy(val) {
-  energyState = val;
-  document.getElementById("energyValue").innerText = val;
+function startDeepWork(){
+  if(!engineOn||deepWorkOn)return;
+  deepWorkOn=true;deepWorkStart=Date.now();
+  deepTimer=setInterval(()=> {
+    const t=Date.now()-deepWorkStart+deepWorkTotalMs;
+    document.getElementById("deepWorkTime").innerText=`${Math.floor(t/60000)} min`;
+  },1000);
+}
+function endDeepWork(){
+  if(!deepWorkOn)return;
+  deepWorkTotalMs+=Date.now()-deepWorkStart;
+  clearInterval(deepTimer);deepWorkOn=false;
 }
 
-function engineStart() {
-  if (engineOn) return;
-
-  engineOn = true;
-  startTime = Date.now();
-
-  document.getElementById("engineStatus").innerText = "ENGINE ON";
-  document.getElementById("engineStatus").style.color = "#22c55e";
-  document.getElementById("engineBtn").innerText = "ENGINE RUNNING";
-
-  engineTimer = setInterval(updateEngineTimer, 1000);
-}
-
-function engineStop() {
-  if (!engineOn) return;
-
-  if (deepWorkOn) endDeepWork();
-
-  const elapsed = Date.now() - startTime;
-  saveSession(elapsed);
-
-  clearInterval(engineTimer);
-  engineOn = false;
-
-  document.getElementById("engineStatus").innerText = "ENGINE OFF";
-  document.getElementById("engineStatus").style.color = "#ef4444";
-  document.getElementById("engineBtn").innerText = "ENGINE START 🔴";
-  document.getElementById("stintTime").innerText = "0h 0m 0s";
-  document.getElementById("deepWorkTime").innerText = "0 min";
-
-  deepWorkTotalMs = 0;
-  loadSessions();
-}
-
-function updateEngineTimer() {
-  const elapsed = Date.now() - startTime;
-
-  const h = Math.floor(elapsed / 3600000);
-  const m = Math.floor((elapsed % 3600000) / 60000);
-  const s = Math.floor((elapsed % 60000) / 1000);
-
-  document.getElementById("stintTime").innerText =
-    `${h}h ${m}m ${s}s`;
-}
-
-/* ===== DEEP WORK LOGIC (FIXED) ===== */
-function startDeepWork() {
-  if (!engineOn || deepWorkOn) return;
-
-  deepWorkOn = true;
-  deepWorkStart = Date.now();
-
-  deepWorkTimer = setInterval(updateDeepWorkTimer, 1000);
-}
-
-function updateDeepWorkTimer() {
-  if (!deepWorkOn) return;
-
-  const elapsed = Date.now() - deepWorkStart + deepWorkTotalMs;
-  const minutes = Math.floor(elapsed / 60000);
-
-  document.getElementById("deepWorkTime").innerText =
-    `${minutes} min`;
-}
-
-function endDeepWork() {
-  if (!deepWorkOn) return;
-
-  deepWorkTotalMs += Date.now() - deepWorkStart;
-  clearInterval(deepWorkTimer);
-  deepWorkOn = false;
+/* ===== OUTPUT ===== */
+function addOutput(){
+  if(!engineOn)return;
+  const val=parseInt(document.getElementById("outputInput").value)||0;
+  outputUnits+=val;
+  document.getElementById("outputValue").innerText=outputUnits;
 }
 
 /* ===== STORAGE ===== */
-function saveSession(ms) {
-  const sessions = JSON.parse(localStorage.getItem("sf499p_sessions")) || [];
-
-  sessions.push({
-    date: new Date().toLocaleDateString(),
-    duration: Math.floor(ms / 60000),
-    energy: energyState,
-    deepWork: Math.floor(deepWorkTotalMs / 60000)
+function saveSession(){
+  const s=JSON.parse(localStorage.getItem("sf499p_sessions"))||[];
+  s.push({
+    date:new Date().toLocaleDateString(),
+    energy:energyState,
+    deepWork:Math.floor(deepWorkTotalMs/60000),
+    output:outputUnits
   });
-
-  localStorage.setItem("sf499p_sessions", JSON.stringify(sessions));
+  localStorage.setItem("sf499p_sessions",JSON.stringify(s));
 }
-
-function loadSessions() {
-  const log = document.getElementById("sessionLog");
-  log.innerHTML = "";
-
-  const sessions = JSON.parse(localStorage.getItem("sf499p_sessions")) || [];
-
-  sessions.forEach((s, i) => {
-    const div = document.createElement("div");
-    div.className = "entry";
-    div.innerText =
-      `#${i + 1} · ${s.date} · ${s.duration} min · Energy ${s.energy}/10 · DeepWork ${s.deepWork} min`;
-    log.appendChild(div);
+function loadSessions(){
+  const log=document.getElementById("sessionLog");
+  log.innerHTML="";
+  const s=JSON.parse(localStorage.getItem("sf499p_sessions"))||[];
+  s.forEach((x,i)=>{
+    const d=document.createElement("div");
+    d.className="entry";
+    d.innerText=
+      `#${i+1} · ${x.date} · Energy ${x.energy} · DeepWork ${x.deepWork} min · Output ${x.output}`;
+    log.appendChild(d);
   });
 }
 
-loadSessions();
+/* ===== CHART ===== */
+function updateChart(){
+  const s=JSON.parse(localStorage.getItem("sf499p_sessions"))||[];
+  const labels=s.map((_,i)=>`S${i+1}`);
+  const data=s.map(x=>x.output);
+  if(outputChart)outputChart.destroy();
+  outputChart=new Chart(document.getElementById("outputChart"),{
+    type:"bar",
+    data:{labels,datasets:[{label:"Output Units",data}]}
+  });
+}
+
+loadSessions();updateChart();
 </script>
 
 </body>
