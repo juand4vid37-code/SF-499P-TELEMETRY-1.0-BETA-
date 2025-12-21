@@ -72,43 +72,42 @@
 <div class="container">
   <h1>SF-499P · HUMAN TELEMETRY</h1>
 
-  <!-- ENGINE PANEL -->
+  <!-- ENGINE -->
   <div class="panel">
     <button id="engineBtn" onclick="engineStart()">ENGINE START 🔴</button>
     <button onclick="engineStop()">ENGINE STOP 🟥</button>
 
-    <p>
-      STATUS:
+    <p>STATUS:
       <span id="engineStatus" style="color:#ef4444;">ENGINE OFF</span>
     </p>
 
-    <p>
-      STINT TIME:
+    <p>STINT TIME:
       <span id="stintTime">0h 0m 0s</span>
     </p>
   </div>
 
-  <!-- ENERGY PANEL -->
+  <!-- ENERGY -->
   <div class="panel">
-    <p>ENERGY STATE: <strong><span id="energyValue">5</span>/10</strong></p>
+    <p>ENERGY STATE:
+      <strong><span id="energyValue">5</span>/10</strong>
+    </p>
     <input type="range" min="1" max="10" value="5"
       oninput="updateEnergy(this.value)">
   </div>
 
-  <!-- DEEP WORK PANEL -->
+  <!-- DEEP WORK -->
   <div class="panel">
     <p><strong>DEEP WORK STINT</strong></p>
 
     <button class="secondary" onclick="startDeepWork()">START DEEP WORK</button>
     <button class="secondary" onclick="endDeepWork()">END DEEP WORK</button>
 
-    <p>
-      CURRENT DEEP WORK:
+    <p>CURRENT DEEP WORK:
       <span id="deepWorkTime">0 min</span>
     </p>
   </div>
 
-  <!-- SESSION LOG -->
+  <!-- LOG -->
   <div class="panel">
     <h2 style="font-size:14px; letter-spacing:2px;">SESSION LOG</h2>
     <div id="sessionLog" class="log"></div>
@@ -116,18 +115,19 @@
 </div>
 
 <script>
-/* ========= ENGINE ========= */
+/* ===== ENGINE ===== */
 let engineOn = false;
 let startTime = null;
-let timer = null;
+let engineTimer = null;
 
-/* ========= ENERGY ========= */
+/* ===== ENERGY ===== */
 let energyState = 5;
 
-/* ========= DEEP WORK ========= */
+/* ===== DEEP WORK ===== */
 let deepWorkOn = false;
 let deepWorkStart = null;
-let deepWorkMinutes = 0;
+let deepWorkTotalMs = 0;
+let deepWorkTimer = null;
 
 function updateEnergy(val) {
   energyState = val;
@@ -144,7 +144,7 @@ function engineStart() {
   document.getElementById("engineStatus").style.color = "#22c55e";
   document.getElementById("engineBtn").innerText = "ENGINE RUNNING";
 
-  timer = setInterval(updateTimer, 1000);
+  engineTimer = setInterval(updateEngineTimer, 1000);
 }
 
 function engineStop() {
@@ -155,7 +155,7 @@ function engineStop() {
   const elapsed = Date.now() - startTime;
   saveSession(elapsed);
 
-  clearInterval(timer);
+  clearInterval(engineTimer);
   engineOn = false;
 
   document.getElementById("engineStatus").innerText = "ENGINE OFF";
@@ -164,11 +164,11 @@ function engineStop() {
   document.getElementById("stintTime").innerText = "0h 0m 0s";
   document.getElementById("deepWorkTime").innerText = "0 min";
 
-  deepWorkMinutes = 0;
+  deepWorkTotalMs = 0;
   loadSessions();
 }
 
-function updateTimer() {
+function updateEngineTimer() {
   const elapsed = Date.now() - startTime;
 
   const h = Math.floor(elapsed / 3600000);
@@ -179,27 +179,35 @@ function updateTimer() {
     `${h}h ${m}m ${s}s`;
 }
 
-/* ========= DEEP WORK LOGIC ========= */
+/* ===== DEEP WORK LOGIC (FIXED) ===== */
 function startDeepWork() {
   if (!engineOn || deepWorkOn) return;
 
   deepWorkOn = true;
   deepWorkStart = Date.now();
+
+  deepWorkTimer = setInterval(updateDeepWorkTimer, 1000);
+}
+
+function updateDeepWorkTimer() {
+  if (!deepWorkOn) return;
+
+  const elapsed = Date.now() - deepWorkStart + deepWorkTotalMs;
+  const minutes = Math.floor(elapsed / 60000);
+
+  document.getElementById("deepWorkTime").innerText =
+    `${minutes} min`;
 }
 
 function endDeepWork() {
   if (!deepWorkOn) return;
 
-  const elapsed = Date.now() - deepWorkStart;
-  deepWorkMinutes += Math.floor(elapsed / 60000);
-
-  document.getElementById("deepWorkTime").innerText =
-    `${deepWorkMinutes} min`;
-
+  deepWorkTotalMs += Date.now() - deepWorkStart;
+  clearInterval(deepWorkTimer);
   deepWorkOn = false;
 }
 
-/* ========= STORAGE ========= */
+/* ===== STORAGE ===== */
 function saveSession(ms) {
   const sessions = JSON.parse(localStorage.getItem("sf499p_sessions")) || [];
 
@@ -207,7 +215,7 @@ function saveSession(ms) {
     date: new Date().toLocaleDateString(),
     duration: Math.floor(ms / 60000),
     energy: energyState,
-    deepWork: deepWorkMinutes
+    deepWork: Math.floor(deepWorkTotalMs / 60000)
   });
 
   localStorage.setItem("sf499p_sessions", JSON.stringify(sessions));
