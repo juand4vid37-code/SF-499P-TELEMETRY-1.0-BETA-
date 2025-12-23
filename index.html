@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>SF-499P | WEC ENDURANCE</title>
+
   <style>
     body {
       margin: 0;
@@ -33,14 +34,30 @@
     }
 
     .title {
-      font-size: 16px;
+      font-size: 15px;
       letter-spacing: 3px;
-      color: #f87171; /* Ferrari vibe */
+      color: #D40000;
     }
 
     .status {
-      font-size: 12px;
-      color: #22c55e;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .engine-btn {
+      margin-bottom: 24px;
+      padding: 12px 26px;
+      background: #D40000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+
+    .engine-btn.active {
+      background: #22c55e;
     }
 
     .grid {
@@ -54,7 +71,6 @@
       border: 1px solid #1f2937;
       padding: 18px;
       box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
-      position: relative;
     }
 
     .metric-label {
@@ -64,43 +80,22 @@
     }
 
     .metric-value {
-      font-size: 38px;
+      font-size: 36px;
       margin-top: 10px;
-      font-weight: 500;
-      color: #f9fafb;
     }
 
-    .led-bar {
-      height: 8px;
-      margin-top: 6px;
-      background-color: #333;
+    .bar {
+      height: 6px;
+      margin-top: 8px;
+      background: #111;
       border-radius: 4px;
       overflow: hidden;
     }
 
-    .led-fill {
+    .fill {
       height: 100%;
       width: 0%;
-      background-color: #22c55e;
-      transition: width 0.5s, background-color 0.5s;
-    }
-
-    .engine-btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 24px;
-      background: #D40000; /* rojo Ferrari */
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-      letter-spacing: 1px;
-    }
-
-    .engine-btn.active {
-      background: #22c55e;
+      transition: width 0.4s;
     }
 
     .footer {
@@ -111,164 +106,116 @@
       display: flex;
       justify-content: space-between;
     }
-
-    .alert {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      font-weight: bold;
-      font-size: 12px;
-      color: #fff;
-      background: rgba(212,0,0,0.85); /* rojo Ferrari */
-      display: none;
-      padding: 4px 0;
-    }
   </style>
 </head>
 
 <body>
   <div class="container">
+
     <div class="header">
-      <div class="title">SF-499P · ENDURANCE TELEMETRY</div>
-      <div class="status" id="engineStatus">ENGINE OFF</div>
+      <div class="title">SF-499P · HUMAN TELEMETRY</div>
+      <div class="status" id="status">ENGINE OFF</div>
     </div>
 
     <button class="engine-btn" id="engineBtn">ENGINE START 🔴</button>
 
     <div class="grid">
       <div class="metric">
-        <div class="alert" id="energyAlert">ENERGY LOW</div>
         <div class="metric-label">ENERGY STATE</div>
-        <div class="metric-value" id="energy">5</div>
-        <div class="led-bar"><div class="led-fill" id="energyLed"></div></div>
+        <div class="metric-value" id="energy">8.0</div>
+        <div class="bar"><div class="fill" id="energyBar"></div></div>
       </div>
 
       <div class="metric">
-        <div class="alert" id="deepAlert">TAKE A BREAK</div>
         <div class="metric-label">DEEP WORK (MIN)</div>
-        <div class="metric-value" id="deepwork">0</div>
-        <div class="led-bar"><div class="led-fill" id="deepLed"></div></div>
+        <div class="metric-value" id="deep">0</div>
+        <div class="bar"><div class="fill" id="deepBar"></div></div>
       </div>
 
       <div class="metric">
         <div class="metric-label">MENTAL CALLOUS</div>
-        <div class="metric-value" id="mental">10</div>
-        <div class="led-bar"><div class="led-fill" id="mentalLed"></div></div>
+        <div class="metric-value" id="mental">40</div>
+        <div class="bar"><div class="fill" id="mentalBar"></div></div>
       </div>
 
       <div class="metric">
         <div class="metric-label">OUTPUT UNITS</div>
         <div class="metric-value" id="output">0</div>
-        <div class="led-bar"><div class="led-fill" id="outputLed"></div></div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">CONSISTENCY STREAK</div>
-        <div class="metric-value" id="streak">3</div>
-        <div class="led-bar"><div class="led-fill" id="streakLed"></div></div>
+        <div class="bar"><div class="fill" id="outputBar"></div></div>
       </div>
     </div>
 
     <div class="footer">
-      <div>ENGINEER VIEW · NO DISTRACTIONS</div>
-      <div>ENDURANCE MODE</div>
+      <div>ENGINEER MODE</div>
+      <div>ENDURANCE STINT</div>
     </div>
+
   </div>
 
   <script>
-    let engineOn = false;
-    let deepWorkMinutes = 0;
-    let energy = 5;
-    const deepIntervalTime = 10000; // 10 seg simulados = 1 min
+    let engine = false;
+    let deep = 0;
+    let energy = 8.0;
+    let output = 0;
 
-    const engineBtn = document.getElementById("engineBtn");
-    const engineStatus = document.getElementById("engineStatus");
-    const deepwork = document.getElementById("deepwork");
-    const energyVal = document.getElementById("energy");
-    const energyLed = document.getElementById("energyLed");
-    const deepLed = document.getElementById("deepLed");
-    const energyAlert = document.getElementById("energyAlert");
-    const deepAlert = document.getElementById("deepAlert");
+    const btn = document.getElementById("engineBtn");
+    const status = document.getElementById("status");
 
-    function updateLed(led, value) {
-      led.style.width = Math.min(value*10,100) + "%";
-      if(value<=3) led.style.backgroundColor = "#D40000"; // rojo Ferrari
-      else if(value<=6) led.style.backgroundColor = "orange";
-      else led.style.backgroundColor = "#22c55e";
+    const deepEl = document.getElementById("deep");
+    const energyEl = document.getElementById("energy");
+    const outputEl = document.getElementById("output");
+
+    const energyBar = document.getElementById("energyBar");
+    const deepBar = document.getElementById("deepBar");
+    const mentalBar = document.getElementById("mentalBar");
+    const outputBar = document.getElementById("outputBar");
+
+    function updateBars() {
+      energyBar.style.width = (energy / 10 * 100) + "%";
+      energyBar.style.background = energy < 3 ? "#D40000" : "#22c55e";
+
+      deepBar.style.width = Math.min(deep / 180 * 100, 100) + "%";
+      deepBar.style.background = "#60a5fa";
+
+      mentalBar.style.width = "40%";
+      mentalBar.style.background = "#f59e0b";
+
+      outputBar.style.width = Math.min(output * 10, 100) + "%";
+      outputBar.style.background = "#22c55e";
     }
 
-    engineBtn.addEventListener("click", () => {
-      engineOn = !engineOn;
-      if(engineOn){
-        engineBtn.classList.add("active");
-        engineBtn.innerText = "ENGINE ON 🟢";
-        engineStatus.innerText = "ENGINE ACTIVE";
-        startDeepWork();
+    let timer;
+
+    btn.onclick = () => {
+      engine = !engine;
+
+      if (engine) {
+        btn.classList.add("active");
+        btn.innerText = "ENGINE ON 🟢";
+        status.innerText = "STINT ACTIVE";
+
+        timer = setInterval(() => {
+          deep++;
+          energy = Math.max(0, energy - 0.05);
+          output++;
+
+          deepEl.innerText = deep;
+          energyEl.innerText = energy.toFixed(1);
+          outputEl.innerText = output;
+
+          updateBars();
+        }, 10000);
+
       } else {
-        engineBtn.classList.remove("active");
-        engineBtn.innerText = "ENGINE OFF 🔴";
-        engineStatus.innerText = "ENGINE OFF";
-        stopDeepWork();
+        btn.classList.remove("active");
+        btn.innerText = "ENGINE START 🔴";
+        status.innerText = "ENGINE OFF";
+        clearInterval(timer);
       }
-    });
+    };
 
-    let deepInterval;
-
-    function startDeepWork(){
-      deepInterval = setInterval(()=>{
-        deepWorkMinutes += 1;
-        deepwork.innerText = deepWorkMinutes;
-
-        // Alertas
-        if(deepWorkMinutes >= 90){
-          deepAlert.style.display = "block";
-        } else {
-          deepAlert.style.display = "none";
-        }
-
-        // Simular energía decreciendo
-        energy = Math.max(0, energy - 0.05);
-        energyVal.innerText = energy.toFixed(1);
-        updateLed(energyLed, energy);
-
-      }, deepIntervalTime);
-    }
-
-    function stopDeepWork(){
-      clearInterval(deepInterval);
-      deepAlert.style.display = "none";
-    }
-
-    // Inicializar LEDs
-    updateLed(energyLed, energy);
-    updateLed(deepLed, deepWorkMinutes/10);
+    updateBars();
   </script>
-  <script>
-  const CSV_URL = "PEGA_AQUI_TU_URL_CSV";
-
-  function updateTelemetry() {
-    fetch(CSV_URL)
-      .then(response => response.text())
-      .then(csv => {
-        const lines = csv.trim().split("\n");
-        const last = lines[lines.length - 1].split(",");
-
-        document.getElementById("energy").innerText = last[1] || "--";
-        document.getElementById("deepwork").innerText = last[2] || "--";
-        document.getElementById("mental").innerText = last[3] || "--";
-        document.getElementById("output").innerText = last[4] || "--";
-        document.getElementById("streak").innerText = last[5] || "--";
-      })
-      .catch(err => {
-        console.error("Telemetry fetch error:", err);
-      });
-  }
-
-  updateTelemetry();
-  setInterval(updateTelemetry, 10000); // cada 10 segundos
-</script>
 
 </body>
 </html>
