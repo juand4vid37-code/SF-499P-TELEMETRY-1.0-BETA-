@@ -245,5 +245,30 @@
     updateLed(energyLed, energy);
     updateLed(deepLed, deepWorkMinutes/10);
   </script>
+  <script>
+  const CSV_URL = "PEGA_AQUI_TU_URL_CSV";
+
+  function updateTelemetry() {
+    fetch(CSV_URL)
+      .then(response => response.text())
+      .then(csv => {
+        const lines = csv.trim().split("\n");
+        const last = lines[lines.length - 1].split(",");
+
+        document.getElementById("energy").innerText = last[1] || "--";
+        document.getElementById("deepwork").innerText = last[2] || "--";
+        document.getElementById("mental").innerText = last[3] || "--";
+        document.getElementById("output").innerText = last[4] || "--";
+        document.getElementById("streak").innerText = last[5] || "--";
+      })
+      .catch(err => {
+        console.error("Telemetry fetch error:", err);
+      });
+  }
+
+  updateTelemetry();
+  setInterval(updateTelemetry, 10000); // cada 10 segundos
+</script>
+
 </body>
 </html>
