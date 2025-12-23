@@ -89,7 +89,7 @@
       display: inline-block;
       margin-top: 20px;
       padding: 12px 24px;
-      background: #f87171;
+      background: #D40000; /* rojo Ferrari */
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -121,7 +121,7 @@
       font-weight: bold;
       font-size: 12px;
       color: #fff;
-      background: rgba(255,0,0,0.8);
+      background: rgba(212,0,0,0.85); /* rojo Ferrari */
       display: none;
       padding: 4px 0;
     }
@@ -178,11 +178,10 @@
   </div>
 
   <script>
-    // Variables iniciales
     let engineOn = false;
     let deepWorkMinutes = 0;
     let energy = 5;
-    const deepIntervalTime = 10000; // 10 seg
+    const deepIntervalTime = 10000; // 10 seg simulados = 1 min
 
     const engineBtn = document.getElementById("engineBtn");
     const engineStatus = document.getElementById("engineStatus");
@@ -195,7 +194,7 @@
 
     function updateLed(led, value) {
       led.style.width = Math.min(value*10,100) + "%";
-      if(value<=3) led.style.backgroundColor = "red";
+      if(value<=3) led.style.backgroundColor = "#D40000"; // rojo Ferrari
       else if(value<=6) led.style.backgroundColor = "orange";
       else led.style.backgroundColor = "#22c55e";
     }
@@ -221,6 +220,7 @@
       deepInterval = setInterval(()=>{
         deepWorkMinutes += 1;
         deepwork.innerText = deepWorkMinutes;
+
         // Alertas
         if(deepWorkMinutes >= 90){
           deepAlert.style.display = "block";
