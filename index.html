@@ -64,30 +64,15 @@
     }
 
     .metric-value {
-      font-size: 38px;
+      font-size: 32px;
       margin-top: 10px;
       font-weight: 500;
       color: #f9fafb;
     }
 
-    .led-bar {
-      height: 8px;
-      margin-top: 6px;
-      background-color: #333;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .led-fill {
-      height: 100%;
-      width: 0%;
-      background-color: #22c55e;
-      transition: width 0.5s, background-color 0.5s;
-    }
-
     .engine-btn {
       display: inline-block;
-      margin-top: 20px;
+      margin-bottom: 24px;
       padding: 12px 24px;
       background: #D40000;
       color: #fff;
@@ -103,6 +88,31 @@
       background: #22c55e;
     }
 
+    .manual-input {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .manual-input input {
+      padding: 6px;
+      background: #0b0c0d;
+      border: 1px solid #1f2937;
+      color: #fff;
+    }
+
+    .manual-input button {
+      grid-column: span 4;
+      padding: 10px;
+      background: #f87171;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
     .footer {
       margin-top: 36px;
       font-size: 10px;
@@ -111,182 +121,82 @@
       display: flex;
       justify-content: space-between;
     }
-
-    .alert {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      font-weight: bold;
-      font-size: 12px;
-      color: #fff;
-      background: rgba(212,0,0,0.85);
-      display: none;
-      padding: 4px 0;
-    }
-
-    .manual-input {
-      margin-top: 20px;
-    }
-
-    .manual-input input {
-      width: 60px;
-      padding: 4px;
-      margin-right: 10px;
-    }
-
-    .manual-input button {
-      padding: 6px 12px;
-      background: #f87171;
-      border: none;
-      color: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="title">SF-499P · ENDURANCE TELEMETRY</div>
-      <div class="status" id="engineStatus">ENGINE OFF</div>
-    </div>
+<div class="container">
 
-    <button class="engine-btn" id="engineBtn">ENGINE START 🔴</button>
-
-    <div class="grid">
-      <div class="metric">
-        <div class="alert" id="energyAlert">ENERGY LOW</div>
-        <div class="metric-label">ENERGY STATE</div>
-        <div class="metric-value" id="energy">5</div>
-        <div class="led-bar"><div class="led-fill" id="energyLed"></div></div>
-      </div>
-
-      <div class="metric">
-        <div class="alert" id="deepAlert">TAKE A BREAK</div>
-        <div class="metric-label">DEEP WORK (MIN)</div>
-        <div class="metric-value" id="deepwork">0</div>
-        <div class="led-bar"><div class="led-fill" id="deepLed"></div></div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">MENTAL CALLOUS</div>
-        <div class="metric-value" id="mental">10</div>
-        <div class="led-bar"><div class="led-fill" id="mentalLed"></div></div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">OUTPUT UNITS</div>
-        <div class="metric-value" id="output">0</div>
-        <div class="led-bar"><div class="led-fill" id="outputLed"></div></div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">CONSISTENCY STREAK</div>
-        <div class="metric-value" id="streak">3</div>
-        <div class="led-bar"><div class="led-fill" id="streakLed"></div></div>
-      </div>
-    </div>
-
-    <div class="manual-input">
-      <span>Manual Update:</span>
-      <input type="number" id="manualEnergy" placeholder="Energy" min="0" max="10">
-      <input type="number" id="manualDeep" placeholder="DeepWork" min="0">
-      <input type="number" id="manualMental" placeholder="Mental" min="0" max="100">
-      <input type="number" id="manualOutput" placeholder="Output" min="0">
-      <input type="number" id="manualStreak" placeholder="Streak" min="0">
-      <button id="updateBtn">Update Metrics</button>
-    </div>
-
-    <div class="footer">
-      <div>ENGINEER VIEW · NO DISTRACTIONS</div>
-      <div>ENDURANCE MODE</div>
-    </div>
+  <div class="header">
+    <div class="title">SF-499P · ENDURANCE TELEMETRY</div>
+    <div class="status" id="engineStatus">ENGINE OFF</div>
   </div>
 
-  <script>
-    let engineOn = false;
-    let deepWorkMinutes = 0;
-    let energy = 5;
+  <button class="engine-btn" id="engineBtn">ENGINE START 🔴</button>
 
-    const engineBtn = document.getElementById("engineBtn");
-    const engineStatus = document.getElementById("engineStatus");
-    const deepwork = document.getElementById("deepwork");
-    const energyVal = document.getElementById("energy");
-    const energyLed = document.getElementById("energyLed");
-    const deepLed = document.getElementById("deepLed");
-    const energyAlert = document.getElementById("energyAlert");
-    const deepAlert = document.getElementById("deepAlert");
+  <div class="grid">
+    <div class="metric"><div class="metric-label">ENERGY STATE</div><div class="metric-value" id="energy">5</div></div>
+    <div class="metric"><div class="metric-label">DEEP WORK (MIN)</div><div class="metric-value" id="deepwork">0</div></div>
+    <div class="metric"><div class="metric-label">MENTAL CALLOUS</div><div class="metric-value" id="mental">10</div></div>
+    <div class="metric"><div class="metric-label">OUTPUT UNITS</div><div class="metric-value" id="output">0</div></div>
+    <div class="metric"><div class="metric-label">CONSISTENCY STREAK</div><div class="metric-value" id="streak">3</div></div>
 
-    function updateLed(led, value){
-      led.style.width = Math.min(value*10,100) + "%";
-      if(value<=3) led.style.backgroundColor = "#D40000";
-      else if(value<=6) led.style.backgroundColor = "orange";
-      else led.style.backgroundColor = "#22c55e";
-    }
+    <div class="metric"><div class="metric-label">FLOW STATE</div><div class="metric-value" id="flow">3</div></div>
+    <div class="metric"><div class="metric-label">FOCUS SCORE</div><div class="metric-value" id="focus">75</div></div>
+    <div class="metric"><div class="metric-label">BPM</div><div class="metric-value" id="bpm">62</div></div>
+    <div class="metric"><div class="metric-label">CARRERA (KM)</div><div class="metric-value" id="carrera">0.0</div></div>
+    <div class="metric"><div class="metric-label">FATIGUE</div><div class="metric-value" id="fatigue">2</div></div>
+    <div class="metric"><div class="metric-label">TASKS COMPLETED</div><div class="metric-value" id="tasks">0/0</div></div>
+    <div class="metric"><div class="metric-label">EFFECTIVENESS</div><div class="metric-value" id="effectiveness">80</div></div>
+    <div class="metric"><div class="metric-label">CONSISTENCY SCORE</div><div class="metric-value" id="consistencyScore">85</div></div>
+  </div>
 
-    engineBtn.addEventListener("click", () => {
-      engineOn = !engineOn;
-      if(engineOn){
-        engineBtn.classList.add("active");
-        engineBtn.innerText = "ENGINE ON 🟢";
-        engineStatus.innerText = "ENGINE ACTIVE";
-        startDeepWork();
-      } else {
-        engineBtn.classList.remove("active");
-        engineBtn.innerText = "ENGINE OFF 🔴";
-        engineStatus.innerText = "ENGINE OFF";
-        stopDeepWork();
-      }
+  <div class="manual-input">
+    <input id="m_energy" placeholder="Energy">
+    <input id="m_deep" placeholder="DeepWork">
+    <input id="m_mental" placeholder="Mental">
+    <input id="m_output" placeholder="Output">
+    <input id="m_flow" placeholder="Flow">
+    <input id="m_focus" placeholder="Focus">
+    <input id="m_bpm" placeholder="BPM">
+    <input id="m_carrera" placeholder="Carrera">
+    <input id="m_fatigue" placeholder="Fatigue">
+    <input id="m_tasks" placeholder="Tasks (x/y)">
+    <input id="m_effectiveness" placeholder="Effectiveness">
+    <input id="m_consistencyScore" placeholder="Consistency Score">
+    <button id="updateBtn">UPDATE METRICS</button>
+  </div>
+
+  <div class="footer">
+    <div>ENGINEER VIEW · NO DISTRACTIONS</div>
+    <div>ENDURANCE MODE</div>
+  </div>
+
+</div>
+
+<script>
+  document.getElementById("updateBtn").addEventListener("click", () => {
+    const map = {
+      energy: "m_energy",
+      deepwork: "m_deep",
+      mental: "m_mental",
+      output: "m_output",
+      flow: "m_flow",
+      focus: "m_focus",
+      bpm: "m_bpm",
+      carrera: "m_carrera",
+      fatigue: "m_fatigue",
+      tasks: "m_tasks",
+      effectiveness: "m_effectiveness",
+      consistencyScore: "m_consistencyScore"
+    };
+
+    Object.keys(map).forEach(id => {
+      const val = document.getElementById(map[id]).value;
+      if (val !== "") document.getElementById(id).innerText = val;
     });
+  });
+</script>
 
-    let deepInterval;
-
-    function startDeepWork(){
-      deepInterval = setInterval(()=>{
-        deepWorkMinutes += 1;
-        deepwork.innerText = deepWorkMinutes;
-
-        if(deepWorkMinutes >= 90){
-          deepAlert.style.display = "block";
-        } else {
-          deepAlert.style.display = "none";
-        }
-
-        energy = Math.max(0, energy - 0.05);
-        energyVal.innerText = energy.toFixed(1);
-        updateLed(energyLed, energy);
-
-        updateLed(deepLed, deepWorkMinutes/10);
-
-      }, 10000);
-    }
-
-    function stopDeepWork(){
-      clearInterval(deepInterval);
-      deepAlert.style.display = "none";
-    }
-
-    updateLed(energyLed, energy);
-    updateLed(deepLed, deepWorkMinutes/10);
-
-    // MANUAL UPDATE
-    document.getElementById("updateBtn").addEventListener("click", ()=>{
-      const e = Number(document.getElementById("manualEnergy").value);
-      const d = Number(document.getElementById("manualDeep").value);
-      const m = Number(document.getElementById("manualMental").value);
-      const o = Number(document.getElementById("manualOutput").value);
-      const s = Number(document.getElementById("manualStreak").value);
-
-      if(!isNaN(e)){ energy = e; energyVal.innerText = e; updateLed(energyLed,e);}
-      if(!isNaN(d)){ deepWorkMinutes = d; deepwork.innerText = d; updateLed(deepLed,d/10);}
-      if(!isNaN(m)) document.getElementById("mental").innerText = m;
-      if(!isNaN(o)) document.getElementById("output").innerText = o;
-      if(!isNaN(s)) document.getElementById("streak").innerText = s;
-    });
-  </script>
 </body>
 </html>
